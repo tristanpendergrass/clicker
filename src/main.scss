@@ -1,3 +1,28 @@
-body {
+$light-1: #f4eeff;
+$light-2: #dcd6f7;
+$dark-1: #a6b1e1;
+$dark-2: #424874;
+
+* {
   font-size: 12px;
+  font-family: Arial, sans-serif;
+  color: $light-1;
+}
+
+body {
+  margin: 0;
+  background-color: $dark-2;
+}
+
+h1 {
+  font-size: 4em;
+  font-weight: normal;
+}
+
+button {
+  background-color: $dark-2;
+}
+
+.main {
+  margin: 10px;
 }
