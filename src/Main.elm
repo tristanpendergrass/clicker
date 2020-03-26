@@ -17,14 +17,21 @@ type Module
     | Stockpile
     | GatherWood
     | ConstructAxe
+    | UpgradeAxe
     | BuildHut
+
+
+type AxeStatus
+    = AxeUnowned
+    | AxeLevel1
+    | AxeLevel2
 
 
 type alias Model =
     { modules : List Module
     , mainQuestStage : MainQuestStage
     , wood : Int
-    , hasAxe : Bool
+    , axeStatus : AxeStatus
     }
 
 
@@ -39,7 +46,7 @@ initialModel =
             ]
     , mainQuestStage = One
     , wood = 0
-    , hasAxe = False
+    , axeStatus = AxeUnowned
     }
 
 
@@ -47,6 +54,7 @@ type Msg
     = HandleGatherWood
     | HandleConstructAxe
     | HandleBuildHut
+    | HandleUpgradeAxe
 
 
 update : Msg -> Model -> Model
@@ -56,11 +64,15 @@ update msg model =
             let
                 amountGathered : Int
                 amountGathered =
-                    if model.hasAxe then
-                        10
+                    case model.axeStatus of
+                        AxeUnowned ->
+                            1
 
-                    else
-                        1
+                        AxeLevel1 ->
+                            5
+
+                        AxeLevel2 ->
+                            10
             in
             { model
                 | wood = model.wood + amountGathered
@@ -72,15 +84,28 @@ update msg model =
                 newModules =
                     model.modules
                         |> List.filter (\mod -> mod /= ConstructAxe)
+                        |> (::) UpgradeAxe
                         |> (::) BuildHut
             in
             if model.wood >= 10 then
                 { model
                     | wood = model.wood - 10
-                    , hasAxe = True
+                    , axeStatus = AxeLevel1
                     , modules = newModules
                     , mainQuestStage = Two
                 }
+
+            else
+                model
+
+        HandleUpgradeAxe ->
+            let
+                newModules : List Module
+                newModules =
+                    model.modules |> List.filter (\mod -> mod /= UpgradeAxe)
+            in
+            if model.wood >= 25 then
+                { model | wood = model.wood - 25, modules = newModules, axeStatus = AxeLevel2 }
 
             else
                 model
@@ -118,7 +143,7 @@ renderMainQuest stage =
                 Completed ->
                     "You have completed the game"
     in
-    div [ class "main-quest" ]
+    div []
         [ h2 [ class "module-title" ] [ text "Main Quest" ]
         , div [] [ text stageText ]
         ]
@@ -132,33 +157,46 @@ renderStockpile wood =
         ]
 
 
-renderGatherWood : Bool -> Html Msg
-renderGatherWood hasAxe =
-    div [ class "gather-wood" ]
-        [ h2 [ class "module-title" ] [ text "Gather Wood" ]
-        , button [ onClick HandleGatherWood ]
-            [ text
-                (if hasAxe then
-                    "Chop Wood"
+renderGatherWood : AxeStatus -> Html Msg
+renderGatherWood axeStatus =
+    let
+        chopText : String
+        chopText =
+            case axeStatus of
+                AxeUnowned ->
+                    "Forage for sticks (1 wood)"
 
-                 else
-                    "Forage for sticks"
-                )
-            ]
+                AxeLevel1 ->
+                    "Chop Wood (5 wood)"
+
+                AxeLevel2 ->
+                    "Chop Wood (10 wood)"
+    in
+    div []
+        [ h2 [ class "module-title" ] [ text "Gather Wood" ]
+        , button [ onClick HandleGatherWood ] [ text chopText ]
         ]
 
 
 renderConstructAxe : Int -> Html Msg
 renderConstructAxe wood =
-    div [ class "construct-axe" ]
+    div []
         [ h2 [ class "module-title" ] [ text "Construct Axe" ]
         , button [ onClick HandleConstructAxe, disabled (wood < 10) ] [ text "Construct for 10 Wood" ]
         ]
 
 
+renderUpgradeAxe : Int -> Html Msg
+renderUpgradeAxe wood =
+    div []
+        [ h2 [ class "module-title" ] [ text "Upgrade Axe" ]
+        , button [ onClick HandleUpgradeAxe, disabled (wood < 25) ] [ text "Upgrade for 25 Wood" ]
+        ]
+
+
 renderBuildHut : Int -> Html Msg
 renderBuildHut wood =
-    div [ class "build-hut" ]
+    div []
         [ h2 [ class "module-title" ] [ text "Build Hut" ]
         , button [ onClick HandleBuildHut, disabled (wood < 100) ] [ text "Build for 100 Wood" ]
         ]
@@ -177,10 +215,13 @@ renderModule model mod =
                     renderStockpile model.wood
 
                 GatherWood ->
-                    renderGatherWood model.hasAxe
+                    renderGatherWood model.axeStatus
 
                 ConstructAxe ->
                     renderConstructAxe model.wood
+
+                UpgradeAxe ->
+                    renderUpgradeAxe model.wood
 
                 BuildHut ->
                     renderBuildHut model.wood
