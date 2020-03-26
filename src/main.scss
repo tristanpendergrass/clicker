@@ -25,6 +25,10 @@ h1 {
 button {
   background-color: $dark-1;
   color: black;
+
+  &:disabled {
+    color: lighten(black, 50%);
+  }
 }
 
 .main {
