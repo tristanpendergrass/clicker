@@ -6,69 +6,95 @@ import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 
 
+type MainQuestStage
+    = One
+    | Two
+    | Completed
+
+
 type Module
-    = Store
-    | MoneyPrinter
+    = MainQuest MainQuestStage
+    | Stockpile
+    | GatherWood
 
 
 type alias Model =
     { modules : List Module
-    , money : Int
+    , wood : Int
     }
 
 
 initialModel : Model
 initialModel =
-    { modules = [ Store, MoneyPrinter ]
-    , money = 0
+    { modules = [ GatherWood, Stockpile, MainQuest One ]
+    , wood = 0
     }
 
 
 type Msg
-    = PurchaseMoneyPrinter
-    | HandleMoneyPrinterClick
+    = HandleGatherWood
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        PurchaseMoneyPrinter ->
+        HandleGatherWood ->
             { model
-                | modules = MoneyPrinter :: model.modules
-                , money = model.money - 5
+                | wood = model.wood + 1
             }
 
-        HandleMoneyPrinterClick ->
-            { model | money = model.money + 1 }
 
+renderMainQuest : MainQuestStage -> Html Msg
+renderMainQuest stage =
+    let
+        stageText : String
+        stageText =
+            case stage of
+                One ->
+                    "Stage 1 (craft an axe to advance to Stage 2)"
 
-renderStore : Html Msg
-renderStore =
-    div [ class "store" ]
-        [ h2 [ class "module-title" ] [ text "Store" ]
-        , button [ onClick PurchaseMoneyPrinter ] [ text "(5) Purchase Money Printer" ]
+                Two ->
+                    "Stage 2 (build a hut to advance to Complete the Game"
+
+                Completed ->
+                    "You have completed the game"
+    in
+    div [ class "main-quest" ]
+        [ h2 [ class "module-title" ] [ text "Main Quest" ]
+        , div [] [ text stageText ]
         ]
 
 
-renderMoneyPrinter : Html Msg
-renderMoneyPrinter =
-    div [ class "money-printer" ]
-        [ h2 [ class "module-title" ] [ text "Money Printer" ]
-        , button [ onClick HandleMoneyPrinterClick ] [ text "Print" ]
+renderStockpile : Int -> Html Msg
+renderStockpile wood =
+    div [ class "stockpile" ]
+        [ h2 [ class "module-title" ] [ text "Stockpile" ]
+        , div [] [ text ("Wood: " ++ String.fromInt wood) ]
         ]
 
 
-renderModule : Module -> Html Msg
-renderModule mod =
+renderGatherWood : Html Msg
+renderGatherWood =
+    div [ class "gather-wood" ]
+        [ h2 [ class "module-title" ] [ text "Gather Wood" ]
+        , button [ onClick HandleGatherWood ] [ text "Forage for sticks" ]
+        ]
+
+
+renderModule : Model -> Module -> Html Msg
+renderModule model mod =
     let
         inner : Html Msg
         inner =
             case mod of
-                Store ->
-                    renderStore
+                MainQuest stage ->
+                    renderMainQuest stage
 
-                MoneyPrinter ->
-                    renderMoneyPrinter
+                Stockpile ->
+                    renderStockpile model.wood
+
+                GatherWood ->
+                    renderGatherWood
     in
     div [ class "module" ] [ inner ]
 
@@ -76,10 +102,8 @@ renderModule mod =
 view : Model -> Html Msg
 view model =
     div [ class "main" ]
-        [ div [ class "money" ] [ h1 [] [ text (String.fromInt model.money) ] ]
-        , hr [] []
-        , div [ class "modules-container" ]
-            (List.map renderModule <| List.reverse model.modules)
+        [ div [ class "modules-container" ]
+            (List.map (renderModule model) <| List.reverse model.modules)
         ]
 
 
