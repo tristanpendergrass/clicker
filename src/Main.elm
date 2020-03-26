@@ -79,7 +79,7 @@ view model =
         [ div [ class "money" ] [ h1 [] [ text (String.fromInt model.money) ] ]
         , hr [] []
         , div [ class "modules-container" ]
-            (List.map renderModule model.modules)
+            (List.map renderModule <| List.reverse model.modules)
         ]
 
 

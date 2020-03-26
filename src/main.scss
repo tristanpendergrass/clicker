@@ -4,9 +4,12 @@ $dark-1: #a6b1e1;
 $dark-2: #424874;
 
 * {
-  font-size: 12px;
   font-family: Arial, sans-serif;
   color: $light-1;
+}
+
+html {
+  font-size: 100%;
 }
 
 body {
@@ -15,14 +18,38 @@ body {
 }
 
 h1 {
-  font-size: 4em;
+  font-size: 4rem;
   font-weight: normal;
 }
 
 button {
-  background-color: $dark-2;
+  background-color: $dark-1;
+  color: black;
 }
 
 .main {
   margin: 10px;
+}
+
+.modules-container {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
+
+  height: 100vh;
+}
+
+.module {
+  width: 200px;
+  height: 200px;
+  margin: 5px;
+  padding: 5px;
+  border: 1px solid $light-1;
+}
+
+.module-title {
+  margin: 0;
+  margin-bottom: 5px;
+  font-weight: normal;
 }
